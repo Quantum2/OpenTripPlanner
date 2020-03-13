@@ -113,69 +113,6 @@
                 <filtering>false</filtering>
             </resource>
         </resources>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-            </testResource>
-            <testResource>
-                <directory>src/ext-test/resources</directory>
-            </testResource>
-            <testResource>
-                <!-- Shell scripts to start up OTP, need to be filtered to insert the JAR file name. -->
-                <!-- These are treated as testResources rather than resources to keep them out of the JAR. -->
-                <!-- The staging repo will reject a JAR containing them as they use traversal paths (../..). -->
-                <directory>src/scripts</directory>
-                <filtering>true</filtering>
-                <!-- Copy the scripts up into the root of the repo, not /target/classes -->
-                <targetPath>../..</targetPath>
-            </testResource>
-        </testResources>
-        <pluginManagement>
-            <plugins>
-                <!-- m2eclipse lifecycle mapping configuration. This controls which Maven build goals should
-                be performed during incremental builds within the Eclipse IDE. There are sensible defaults
-                for most plugins, but some others require manual configuration with <action><ignore /> or
-                <action><execute /> filters. This section only affects incremental builds within Eclipse,
-                not command-line Maven builds. That's why it's a pluginManagement without an accompanying plugin. -->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.apache.maven.plugins</groupId>
-                                        <artifactId>maven-dependency-plugin</artifactId>
-                                        <versionRange>[1.0,)</versionRange>
-                                        <goals>
-                                            <goal>copy-dependencies</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore />
-                                    </action>
-                                </pluginExecution>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>pl.project13.maven</groupId>
-                                        <artifactId>git-commit-id-plugin</artifactId>
-                                        <versionRange>[1.0,)</versionRange>
-                                        <goals>
-                                            <goal>revision</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <execute />
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
 
         <plugins>
             <plugin>
@@ -284,61 +221,7 @@
                             </sources>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>build-helper-generate-test-sources</id>
-                        <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>add-test-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/test/java</source>
-                                <source>src/ext-test/java</source>
-                            </sources>
-                        </configuration>
-                    </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <!-- We sign in the verify phase, which means it will happen for install and deploy but not package. -->
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
-                <configuration>
-                    <!-- we have to fork the JVM during tests so that the argLine is passed along -->
-                    <forkCount>3</forkCount>
-                    <!-- enable the restricted reflection under Java 11 so that the ObjectDiffer works -->
-                    <argLine>
-                        -Xmx2G
-                        -Dfile.encoding=UTF-8
-                        --illegal-access=permit
-                        --add-opens java.base/java.lang.module=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.reflect=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.misc=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.loader=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.ref=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.util=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.util.jar=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.module=ALL-UNNAMED
-                        --add-opens java.base/java.lang=ALL-UNNAMED
-                    </argLine>
-                    <!-- Jenkins needs XML test reports to determine whether the build is stable. -->
-                    <disableXmlReport>false</disableXmlReport>
-                </configuration>
             </plugin>
             <plugin>
                 <!-- Get current Git commit information for use in MavenVersion class.
@@ -436,50 +319,14 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>com.heroku.sdk</groupId>
+                <artifactId>heroku-maven-plugin</artifactId>
+                <version>3.0.1</version>
+            </plugin>
         </plugins>
     </build>
-
-    <reporting>
-        <!--
-        Reporting plugin versions cannot be managed with entries in <build><plugins><pluginmanagement>
-        but would need a separate <reporting><plugins><pluginmanagement> section.
-        -->
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>2.7</version>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <!-- empty: disable project-info reports -->
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-            <plugin>
-                <!-- This plugin must be configured both here (for site generation) and in "build"
-                (for attach-javadoc during release), preferably with identical version numbers. -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.1.1</version>
-                <configuration>
-                    <!-- Turn off strict Javadoc checking -->
-                    <doclint>none</doclint>
-                    <!-- Sidestep strange error "class file for javax.media.jai.PropertySourceImpl not found" -->
-                    <excludePackageNames>org.opentripplanner.graph_builder.module.ned:*</excludePackageNames>
-                </configuration>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <!-- enable only aggregate-level javadoc generation -->
-                            <report>aggregate</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-        </plugins>
-    </reporting>
 
     <repositories>
         <!-- Hack to force maven to check central first. Maven central is inherited from the superpom,
