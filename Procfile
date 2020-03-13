@@ -1,1 +1,1 @@
-web: java -jar target/*-shaded.jar 
+web: java -jar target/*-shaded.jar --build data --inMemory
