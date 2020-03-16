@@ -1,0 +1,1 @@
+web: java -jar target/*-shaded.jar --build target/classes/client/data --inMemory --port $PORT
