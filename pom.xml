@@ -107,65 +107,8 @@
                 <filtering>false</filtering>
             </resource>
         </resources>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-            </testResource>
-            <testResource>
-                <!-- Shell scripts to start up OTP, need to be filtered to insert the JAR file name. -->
-                <!-- These are treated as testResources rather than resources to keep them out of the JAR. -->
-                <!-- The staging repo will reject a JAR containing them as they use traversal paths (../..). -->
-                <directory>src/scripts</directory>
-                <filtering>true</filtering>
-                <!-- Copy the scripts up into the root of the repo, not /target/classes -->
-                <targetPath>../..</targetPath>
-            </testResource>
-        </testResources>
         <pluginManagement>
-            <plugins>
-                <!-- m2eclipse lifecycle mapping configuration. This controls which Maven build goals should
-                be performed during incremental builds within the Eclipse IDE. There are sensible defaults
-                for most plugins, but some others require manual configuration with <action><ignore /> or
-                <action><execute /> filters. This section only affects incremental builds within Eclipse,
-                not command-line Maven builds. That's why it's a pluginManagement without an accompanying plugin. -->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.apache.maven.plugins</groupId>
-                                        <artifactId>maven-dependency-plugin</artifactId>
-                                        <versionRange>[1.0,)</versionRange>
-                                        <goals>
-                                            <goal>copy-dependencies</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore />
-                                    </action>
-                                </pluginExecution>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>pl.project13.maven</groupId>
-                                        <artifactId>git-commit-id-plugin</artifactId>
-                                        <versionRange>[1.0,)</versionRange>
-                                        <goals>
-                                            <goal>revision</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <execute />
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
+
         </pluginManagement>
 
         <plugins>
@@ -178,6 +121,11 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.heroku.sdk</groupId>
+                <artifactId>heroku-maven-plugin</artifactId>
+                <version>2.0.16</version>
             </plugin>
             <plugin>
                 <!-- Recommended way to deploy to OSSRH , which allows deferred manual release to Central. -->
@@ -255,17 +203,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.21.0</version>
-                <configuration>
-                    <argLine>-Xmx2G</argLine>
-                    <argLine>-Dfile.encoding=UTF-8</argLine>
-                    <!-- Jenkins needs XML test reports to determine whether the build is stable. -->
-                    <disableXmlReport>false</disableXmlReport>
-                </configuration>
             </plugin>
             <plugin>
                 <!-- Get current Git commit information for use in MavenVersion class.
